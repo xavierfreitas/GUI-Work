@@ -41,11 +41,19 @@ ScrabbleTiles["X"] = { "value" : 8,  "original-distribution" : 1,  "number-remai
 ScrabbleTiles["Y"] = { "value" : 4,  "original-distribution" : 2,  "number-remaining" : 2  } ;
 ScrabbleTiles["Z"] = { "value" : 10, "original-distribution" : 1,  "number-remaining" : 1  } ;
 
+// dictionary to check if valid word
+var dictionary = [];
+
+// load the dictionary from the words.txt file
+$.get('https://xavierfreitas.github.io/dict/words.txt', function(data) {
+    // split the text file into lines (since one word per line)
+    dictionary = data.split('\n');
+}).fail(function() { // log if failed to get dictionary
+    console.log("Dictionary file not found!");
+});
+
 // global variable to assign unique IDs to tiles
 var uniqueId = 0;
-
-// global variable to track the last placed tile's index
-var lastPlacedCellIndex = -1;
 
 $(document).ready(function () {
     // users score
@@ -63,6 +71,7 @@ $(document).ready(function () {
     $('.board-cell').droppable({
         accept: '.tile',  // only accept tiles for dropping
         drop: function(event, ui) {
+            clearEmptyCellData(); // clear data from any cells without tiles
             var tile = ui.helper;  // the dragged tile
             var tileLetter = tile.data('letter');  // get letter data from dragged tile
             var tileId = tile.data('id');  // get the unique ID of the dragged tile
@@ -100,7 +109,6 @@ $(document).ready(function () {
                     });
                     $(this).data('letter', tileLetter);
                     $(this).data('id', tileId);
-                    lastPlacedCellIndex = currentCellIndex;  // update the last placed cell index
                 } else {
                     // if not a valid placement, reject the tile placement with animation
                     ui.helper.animate({
@@ -109,6 +117,7 @@ $(document).ready(function () {
                     }, 300);  // animate the tile back to its original position
                 }
             }
+            clearEmptyCellData(); // clear data from any empty cells after drop
         },
         hoverClass: 'hovered'  // class for cell hover effect
     });    
@@ -132,79 +141,76 @@ $(document).ready(function () {
         // remove tile association with board-cell if present
         var parentCell = $(this).parent('.board-cell');
         if (parentCell.length > 0) {
-            parentCell.removeData('letter'); // clear letter data from cell
-            parentCell.removeData('id'); // clear letter data from cell
+            parentCell.removeData('letter').removeData('id'); // clear letter data and id from cell
         }
     });
 
     // logic for the submit button
     $('#submitButton').on('click', function () {
         var wordScore = 0;
+        var wordInput = '';
         var wordLength = 0;
-        var firstTileIndex = -1;
-        var lastTileIndex = -1;
-    
-        // loop through each board cell and check tiles
+        var currentWordCells = [];
+        
+        // collect the word from the board cells
         $('.board-cell').each(function () {
-            var tileLetter = $(this).data('letter'); // get tile letter if present
-            var currentCellIndex = $(this).index();
-    
+            var tileLetter = $(this).data('letter');
             if (tileLetter) {
-                // track first and last tile positions
-                if (firstTileIndex === -1) firstTileIndex = currentCellIndex;
-                lastTileIndex = currentCellIndex;
-    
-                // calculate score
-                if (wordLength === 1) {
-                    // double word score (tile #2)
-                    wordScore += 2 * (ScrabbleTiles[tileLetter]["value"]);
-                } else {
-                    wordScore += ScrabbleTiles[tileLetter]["value"];
-                }
-    
-                wordLength++;
+                currentWordCells.push(tileLetter);
             }
         });
-    
-        // check for gaps between first and last tile
-        var hasGap = false;
-        for (var i = firstTileIndex; i <= lastTileIndex; i++) {
-            if (!$('.board-cell').eq(i).data('letter')) {
-                hasGap = true;
-                break;
-            }
-        }
-    
-        // if there's gaps, prevent submission
-        if (hasGap) {
-            alert("There are gaps between the tiles. Please place the tiles without gaps before submitting.");
+        
+        // check if there's a valid word
+        if (currentWordCells.length === 0) {
+            alert("No word to check.");
             return;
         }
-    
+
+        wordInput = currentWordCells.join('');
+        
+        // checking if the word is valid
+        if (!isValidWord(wordInput)) {
+            alert("Invalid word. Please try again.");
+            return;
+        }
+        
+        // calculate word score
+        currentWordCells.forEach(function (tileLetter, index) {
+            if (wordLength === 1) {
+                // double word score (tile #2)
+                wordScore += 2 * ScrabbleTiles[tileLetter]["value"];
+            } else {
+                wordScore += ScrabbleTiles[tileLetter]["value"];
+            }
+            wordLength++;
+        });
+        
+        // prevent submission if there are gaps
+        if (hasGap()) {
+            alert("No gaps allowed between the word.");
+            return;
+        }
+
         // double word score (tile #6)
         if (wordLength >= 6) {
             wordScore *= 2;
         }
-    
+
         // update total score and display it
         score += wordScore;
         $('#scoreDisplay').text(`Score: ${score}`);
-    
-        // reset last placed cell index
-        lastPlacedCellIndex = -1;
-
-        // clear the board if submit is successful
+        
+        // clear the board if the word is valid
         $('.board-cell').each(function () {
-            $(this).empty();
-            $(this).removeData('letter');
+            $(this).empty().removeData('letter').removeData('id');
         });
 
-        if(wordLength > 0) {
+        // regenerate tiles based on word length
+        if (wordLength > 0) {
             generateRandomTiles(wordLength);
         }
-    
-        // log to console (for debugging)
-        console.log(`Word score: ${wordScore}, Total score: ${score}`);
+
+        alert("Word submitted!");
     });
 
     // logic for the reset button
@@ -226,12 +232,8 @@ $(document).ready(function () {
     
         // clear any tiles on the board
         $('.board-cell').each(function () {
-            $(this).empty();       // remove any tiles visually
-            $(this).removeData('letter'); // remove letter data
+            $(this).empty().removeData('letter').removeData('id');
         });
-    
-        // reset last placed cell index
-        lastPlacedCellIndex = -1;
 
         // log for debugging
         console.log("Game reset! Score cleared and new tiles generated.");
@@ -300,12 +302,36 @@ function getNextAvailableSlot() {
     return null;
 }
 
-// function to determine current cell is valid for placement
-function validCellSlot(currentCellIndex) {
-    // if no tiles have been placed yet, the first cell (index 0) is available
-    if (lastPlacedCellIndex === -1) {
-        return currentCellIndex === 0;
-    }
-    // if it's the first tile or adjacent to the last placed tile, it's a valid slot
-    return currentCellIndex === 0 || currentCellIndex === lastPlacedCellIndex + 1;
+// function to periodically check if board-cells need to clear their data
+function clearEmptyCellData() {
+    $('.board-cell').each(function () {
+        if (!$(this).children().length) {
+            $(this).removeData('letter').removeData('id');
+        }
+    });
+}
+
+// function to check if a word is valid
+function isValidWord(word) {
+    // convert to lowercase incase of case-insensitive comparison
+    return dictionary.includes(word.toLowerCase());
+}
+
+function hasGap() {
+    $('.board-cell').each(function () {
+        var gapStatus = false;
+        if (!$(this).data('letter')) {
+            // potential gap to check for
+            gapStatus = true;
+        } else {
+            // checking if previous tile was a space and the current is a letter (a gap)
+            if(gapStatus == true) {
+                // gap was found
+                return true;
+            }
+            gapStatus = false;
+        }
+    });
+    // no gap was found so return false
+    return false;
 }
