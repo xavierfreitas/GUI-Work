@@ -45,7 +45,7 @@ ScrabbleTiles["Z"] = { "value" : 10, "original-distribution" : 1,  "number-remai
 var dictionary = [];
 
 // load the dictionary from the words.txt file
-$.get('https://xavierfreitas.github.io/dict/words.txt', function(data) {
+$.get('https://xavierfreitas.github.io/hw5/dict/words.txt', function(data) {
     // split the text file into lines (since one word per line)
     dictionary = data.split('\n');
 }).fail(function() { // log if failed to get dictionary
