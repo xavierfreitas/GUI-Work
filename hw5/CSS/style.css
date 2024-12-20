@@ -1,25 +1,26 @@
 /*******
 File: style.css
-GUI Assignment: HW4
-Description: This is the CSS file for styling my times-table web page
+GUI Assignment: HW5
+Description: This is the CSS file for styling my mini scrabble page
 Contact Email: Xavier_Freitas@student.uml
 Xavier Freitas, UMass Lowell Computer Science, xfreitas@cs.uml.edu
 Copyright (c) 2024 by Xavier. All rights reserved. May be freely copied or
 excerpted for educational purposes with credit to the author.
-updated by XF on December 17, 2024 at 12:15PM
+updated by XF on December 19, 2024 at 10:15PM
 *******/
 
 /* filling out page space for wrapper, removing default margin/padding */
 html, body {
-    height: 95%;
+    height: 100%;
     margin: 0;
     padding: 0;
 }
 
 /* styling for the wrapper alongside making it have round corners */
 #wrapper {
-    height: 100%;
+    height: 95%;
     min-width: 720px;
+    min-height: 900px;
     background-color: rgb(255, 196, 0);
     border: 2px solid grey;
     margin: 30px auto;
@@ -27,8 +28,8 @@ html, body {
     padding: 20px;
 }
 
-/* styling for the big "Shortened Scrabble Game!" text */
-#wrapper > p {
+/* styling for the paragraph element title at the top of page */
+#parTitle {
     background-color: rgb(163, 112, 1);
     border-radius: 20px;
     color: white;
@@ -39,9 +40,17 @@ html, body {
     padding: auto 10px;
 }
 
+/* styling for the big "Shortened Scrabble Game!" text */
+#wrapper > p {
+    border-radius: 20px;
+    text-align: center;
+    margin: 10px auto;
+    border-bottom: 3px solid black;
+}
+
 /* styling for game information container */
 #information {
-    margin: 20px auto;
+    margin: 15px auto;
     text-align: center;
     background-color: rgb(163, 112, 1);
     border-bottom: 3px solid black;
@@ -52,13 +61,16 @@ html, body {
 #information > p {
     display: inline-block;
     padding: 10px 20px;
-    margin: 20px auto;
+    margin: 10px auto 0 auto;
     color: white;
     font-size: 2em;
 }
 
-#how2play {
-    margin: 15px auto;
+/* making the second paragraph slightly smaller so that the
+first one stands out more to the reader */
+#information > p:nth-child(2) {
+    margin: 0px auto 10px auto;
+    font-size: 1.2em;
 }
 
 /* tile-holder should have the background image of the tile holder */
@@ -92,6 +104,7 @@ html, body {
     z-index: 100;
 }
 
+/* formatting for the board picture that is behind the board-cells*/
 #board {
     display: flex;
     width: 609px;
@@ -105,6 +118,7 @@ html, body {
     z-index: 10;
 }
 
+/* formatting for the board-cells that hold the tiles */
 .board-cell {
     width: 87px;  /* half of 174px */
     height: 95px;  /* half of 190px */
@@ -170,10 +184,22 @@ html, body {
     border-color: #006400;
 }
 
+/* styling for the user score */
 .score-display {
     text-align: center;
     font-size: 1.5em;
     margin-top: 10px;
     color: #333;
     font-weight: bold;
+}
+
+/* making it so alert box doesn't show when empty */
+#textresult:empty {
+    display: none; /* hide the alert when it's empty */
+}
+
+/* regular styling for alert box (other than bootstrap styling) */
+#textresult {
+    display: block;
+    font-size: 1.2em;
 }

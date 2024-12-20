@@ -1,14 +1,13 @@
 /**
 File: script.js
 GUI Assignment: HW5
-Description: This is the JS code for my interactive times-table web page. It has 
-added JQuery features in order to make validation of the form easier, enable having 
-multiple tables open at once, and deletion of one or more tables at once.
+Description: This is the JS code for my interactive Mini Scrabble Game. It has 
+added JQuery features in order to help with UI handling alongside other things.
 Contact Email: Xavier_Freitas@student.uml
 Xavier Freitas, UMass Lowell Computer Science, xfreitas@cs.uml.edu
 Copyright (c) 2024 by Xavier. All rights reserved. May be freely copied or
 excerpted for educational purposes with credit to the author.
-updated by XF on December 17, 2024 at 12:30PM
+updated by XF on December 19, 2024 at 10:20PM
 **/
 
 // associative array used for scrabble values
@@ -45,6 +44,7 @@ ScrabbleTiles["Z"] = { "value" : 10, "original-distribution" : 1,  "number-remai
 var dictionary = [];
 
 // load the dictionary from the words.txt file
+// Source: https://api.jquery.com/jQuery.get/
 $.get('https://xavierfreitas.github.io/hw5/dict/words.txt', function(data) {
     // split the text file into lines (since one word per line)
     dictionary = data.split('\n');
@@ -63,11 +63,13 @@ $(document).ready(function () {
     generateRandomTiles(7);
 
     // make each tile draggable
+    // Source: https://jqueryui.com/draggable/
     $('.tile').draggable({
         revert: 'invalid' // return the tile to original position if not dropped on valid cell
     });
     
     // make each board-cell droppable
+    // Source: https://jqueryui.com/droppable/
     $('.board-cell').droppable({
         accept: '.tile',  // only accept tiles for dropping
         drop: function(event, ui) {
@@ -97,7 +99,7 @@ $(document).ready(function () {
                 $(this).data('letter', tileLetter);
                 $(this).data('id', tileId);
             } else {
-                // use getNextAvailableSlot to find the next available slot
+                // use getNextAvailableSlot to find next available slot
                 var nextAvailableSlot = getNextAvailableSlot();
                 if (nextAvailableSlot && nextAvailableSlot.index() === currentCellIndex) {
                     // if current cell is next available slot, place tile
@@ -118,6 +120,7 @@ $(document).ready(function () {
                 }
             }
             clearEmptyCellData(); // clear data from any empty cells after drop
+            $('#textresult').hide(); // if a tile has been dropped, get rid of submission alert box
         },
         hoverClass: 'hovered'  // class for cell hover effect
     });    
@@ -137,6 +140,7 @@ $(document).ready(function () {
     });
 
     // allow tiles to be dragged back to tileHolder
+    // Source: https://www.javatpoint.com/jquery-dragstart-event
     $('.tile').on('dragstart', function(event, ui) {
         // remove tile association with board-cell if present
         var parentCell = $(this).parent('.board-cell');
@@ -146,6 +150,8 @@ $(document).ready(function () {
     });
 
     // logic for the submit button
+    // Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
+    // Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     $('#submitButton').on('click', function () {
         var wordScore = 0;
         var wordInput = '';
@@ -162,7 +168,10 @@ $(document).ready(function () {
         
         // check if there's a valid word
         if (currentWordCells.length === 0) {
-            alert("No word to check.");
+            $('#textresult').text("No word to check.")
+                        .removeClass('alert-success')
+                        .addClass('alert-danger')
+                        .show();  // show alert
             return;
         }
 
@@ -170,7 +179,10 @@ $(document).ready(function () {
         
         // checking if the word is valid
         if (!isValidWord(wordInput)) {
-            alert("Invalid word. Please try again.");
+            $('#textresult').text("Invalid word. Please try again.")
+                        .removeClass('alert-success')
+                        .addClass('alert-danger')
+                        .show();  // show alert
             return;
         }
         
@@ -187,7 +199,10 @@ $(document).ready(function () {
         
         // prevent submission if there are gaps
         if (hasGap()) {
-            alert("No gaps allowed between the word.");
+            $('#textresult').text("No gaps allowed between the word.")
+                        .removeClass('alert-success')
+                        .addClass('alert-danger')
+                        .show();  // show alert
             return;
         }
 
@@ -210,16 +225,21 @@ $(document).ready(function () {
             generateRandomTiles(wordLength);
         }
 
-        alert("Word submitted!");
+        // display success alert for valid word submission
+        $('#textresult').text("Word submitted successfully!")
+        .removeClass('alert-danger')
+        .addClass('alert-success')
+        .show();  // show alert
     });
 
     // logic for the reset button
+    // Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
     $('#resetButton').on('click', function () {
         // reset score and update display
         score = 0;
         $('#scoreDisplay').text(`Score: ${score}`);
     
-        // reset ScrabbleTiles' "number-remaining" to original values
+        // reset ScrabbleTiles "number-remaining" data to original values
         for (var letter in ScrabbleTiles) {
             if (ScrabbleTiles.hasOwnProperty(letter)) {
                 ScrabbleTiles[letter]["number-remaining"] = ScrabbleTiles[letter]["original-distribution"];
@@ -235,6 +255,7 @@ $(document).ready(function () {
             $(this).empty().removeData('letter').removeData('id');
         });
 
+        $('#textresult').hide();
         // log for debugging
         console.log("Game reset! Score cleared and new tiles generated.");
     });    
@@ -255,6 +276,7 @@ function generateRandomTiles(numTiles) {
     }
 
     // randomly select tiles and add them to the tileHolder
+    // Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     for (var j = 0; j < numTiles && letterPool.length > 0; j++) {
         var randomIndex = Math.floor(Math.random() * letterPool.length);
         var selectedLetter = letterPool[randomIndex];
@@ -312,6 +334,7 @@ function clearEmptyCellData() {
 }
 
 // function to check if a word is valid
+// Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
 function isValidWord(word) {
     // convert to lowercase incase of case-insensitive comparison
     return dictionary.includes(word.toLowerCase());

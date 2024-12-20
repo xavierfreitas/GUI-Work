@@ -1,13 +1,13 @@
 <!--
 File: index.html
-GUI Assignment: HW4
-Description: This is the index.html home page for the HW4 assignment
-where the HTML for the interactive times table is located.
+GUI Assignment: HW5
+Description: This is the index.html home page for the mini scrabble game
+page. It has additional BootStrap features to help format and style the page.
 Contact Email: Xavier_Freitas@student.uml
 Xavier Freitas, UMass Lowell Computer Science, xfreitas@cs.uml.edu
 Copyright (c) 2024 by Xavier. All rights reserved. May be freely copied or
 excerpted for educational purposes with credit to the author.
-updated by XF on December 17, 2024 at 11:45AM
+updated by XF on December 19, 2024 at 10:20PM
 -->
 
 <!DOCTYPE html>
@@ -23,17 +23,26 @@ updated by XF on December 17, 2024 at 11:45AM
 <body>
     <!-- wrapper bootstrap container -->
     <div id="wrapper" class="container">
-        <p class="col-8">Mini Scrabble Game!</p>
+        <p id="parTitle" class="col-8">Mini Scrabble Game!</p>
+        <!-- div for information on how to play the game  -->
         <div id="information" class="container col-6">
-            <p id="how2play">How do I play?<br>meow meow meow</p>
+            <p id="how2play">How do I play?</p>
+            <p>Try to get the highest possible score by forming words with the available tiles. Place 
+                the tiles from left to right, with no gaps between them. Once you have a valid word, 
+                simply submit and keep going. If you get stuck, just reset!</p>
         </div>
+        <!-- div with the two main buttons for the game -->
         <div id="buttons-container" class="buttons-container">
             <button id="resetButton" class="game-button btn btn-warning">Reset Game</button>
             <button id="submitButton" class="game-button btn btn-success">Submit Word</button>
         </div>
+        <!-- alert box for failure/success upon clicking submit  -->
+        <p id="textresult" class="col-2 alert alert-success"></p>
+        <!-- div for displaying the score  -->
         <div id="scoreDisplay" class="score-display">Score: 0</div>
-        <div id="tileHolder" class="tile-holder">
-        </div>
+        <!-- dynamic div that holds the tiles  -->
+        <div id="tileHolder" class="tile-holder"></div>
+        <!-- div for the board and board-cells that hold the tiles  -->
         <div id="board" class="board">
             <div class="board-cell" id="cell-1"></div>
             <div class="board-cell" id="cell-2"></div>
